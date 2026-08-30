@@ -1,0 +1,76 @@
+/* Prevent text highlight/selection */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.search-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.form-group input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form-divider {
+  align-self: center;
+  font-weight: bold;
+  color: #666;
+}
+
+.form-actions button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.results-table th, 
+.results-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.results-table th {
+  background-color: #f4f4f4;
+}
+
+.status-message {
+  margin: 10px 0;
+  font-weight: bold;
+}
+.status-message.error { color: #d9534f; }
+.status-message.warning { color: #f0ad4e; }

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elector Verification Portal</title>
+  <!-- Link your separate CSS file here -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="no-select">
+
+  <div class="search-container">
+    <h2>Elector Record Lookup</h2>
+    <p class="subtitle">Search by EPIC Number (Column C) or Elector Name (Column D)</p>
+
+    <form id="searchForm" class="search-form">
+      <div class="form-group">
+        <label for="epicInput">EPIC Number</label>
+        <input 
+          type="text" 
+          id="epicInput" 
+          placeholder="Enter exact EPIC Number" 
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-divider">OR</div>
+
+      <div class="form-group">
+        <label for="nameInput">Elector Name</label>
+        <input 
+          type="text" 
+          id="nameInput" 
+          placeholder="Enter exact Elector Name" 
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="searchBtn">Search</button>
+        <button type="button" id="resetBtn">Clear</button>
+      </div>
+    </form>
+
+    <div id="statusMessage" class="status-message" aria-live="polite"></div>
+
+    <div class="results-wrapper">
+      <table id="resultsTable" class="results-table hidden">
+        <thead>
+          <tr>
+            <th>PS No.</th>
+            <th>Serial No.</th>
+            <th>EPIC Number</th>
+            <th>Elector Name</th>
+            <th>Relative Details</th>
+            <th>Mapping Category</th>
+            <th>DOB / Age</th>
+            <th>Uncollectable Reason</th>
+            <th>Photo Uploaded</th>
+            <th>Take Action</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+    // Converting the /pubhtml link to /pub?output=csv for client-side parsing
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqKT_x9zT22htigvfOqx2hTFggz9kFNAT5UA2zYcmsJCNouhYD6F-8sg_LJFmZUQ/pub?gid=1096796837&single=true&output=csv";
+
+    // Column Mapping (0-indexed based on CSV structure)
+    // Col A: PS No (0), Col B: Serial (1), Col C: EPIC (2), Col D: Name (3)
+    const COL_EPIC = 2;
+    const COL_NAME = 3;
+
+    let dataset = [];
+
+    // --- Security & Anti-Copy Features ---
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      // Prevent Ctrl+C, Ctrl+U, Ctrl+S, Ctrl+A, F12
+      if (
+        (e.ctrlKey && ['c', 'u', 's', 'a'].includes(e.key.toLowerCase())) ||
+        e.key === 'F12'
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    // Helper: Mask 10-digit mobile numbers to show only the last 4 digits (e.g., ******1234)
+    function maskMobileNumbers(text) {
+      if (!text) return "";
+      return text.toString().replace(/\b(?:\+?\d{1,3}[- ]?)?(\d{6})(\d{4})\b/g, "******$2");
+    }
+
+    // CSV Parser handling quoted fields and commas
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r\n|\n/);
+      return lines.map(line => {
+        const row = [];
+        let insideQuote = false;
+        let cell = '';
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"' && line[i + 1] === '"') {
+            cell += '"';
+            i++;
+          } else if (char === '"') {
+            insideQuote = !insideQuote;
+          } else if (char === ',' && !insideQuote) {
+            row.push(cell.trim());
+            cell = '';
+          } else {
+            cell += char;
+          }
+        }
+        row.push(cell.trim());
+        return row;
+      });
+    }
+
+    // Fetch Google Sheet dataset on load (silently, without displaying counts)
+    async function loadDataset() {
+      const statusEl = document.getElementById("statusMessage");
+      try {
+        const response = await fetch(SHEET_CSV_URL);
+        if (!response.ok) throw new Error("Failed to load records");
+        const csvData = await response.text();
+        const parsed = parseCSV(csvData);
+        // Exclude header row
+        dataset = parsed.slice(1);
+      } catch (err) {
+        statusEl.textContent = "Unable to connect to database. Please check connection.";
+        statusEl.className = "status-message error";
+      }
+    }
+
+    // --- Search Handler ---
+    document.getElementById("searchForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const epicQuery = document.getElementById("epicInput").value.trim();
+      const nameQuery = document.getElementById("nameInput").value.trim();
+      const statusEl = document.getElementById("statusMessage");
+      const table = document.getElementById("resultsTable");
+      const tbody = document.getElementById("resultsBody");
+
+      tbody.innerHTML = "";
+      statusEl.textContent = "";
+      table.classList.add("hidden");
+
+      if (!epicQuery && !nameQuery) {
+        statusEl.textContent = "Please enter an EPIC Number or Elector Name.";
+        statusEl.className = "status-message error";
+        return;
+      }
+
+      // Filter dataset with Strict Exact Matching (Case-insensitive)
+      const matches = dataset.filter(row => {
+        const rowEpic = (row[COL_EPIC] || "").trim();
+        const rowName = (row[COL_NAME] || "").trim();
+
+        if (epicQuery && nameQuery) {
+          return rowEpic.toLowerCase() === epicQuery.toLowerCase() &&
+                 rowName.toLowerCase() === nameQuery.toLowerCase();
+        } else if (epicQuery) {
+          return rowEpic.toLowerCase() === epicQuery.toLowerCase();
+        } else if (nameQuery) {
+          return rowName.toLowerCase() === nameQuery.toLowerCase();
+        }
+        return false;
+      });
+
+      if (matches.length === 0) {
+        statusEl.textContent = "No matching record found.";
+        statusEl.className = "status-message warning";
+        return;
+      }
+
+      // Render matching rows (values sanitized and masked)
+      matches.forEach(row => {
+        const tr = document.createElement("tr");
+        for (let i = 0; i < 10; i++) {
+          const td = document.createElement("td");
+          const rawVal = row[i] || "-";
+          td.textContent = maskMobileNumbers(rawVal);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      });
+
+      table.classList.remove("hidden");
+    });
+
+    // Reset button
+    document.getElementById("resetBtn").addEventListener("click", function() {
+      document.getElementById("searchForm").reset();
+      document.getElementById("resultsBody").innerHTML = "";
+      document.getElementById("resultsTable").classList.add("hidden");
+      document.getElementById("statusMessage").textContent = "";
+    });
+
+    // Initialize on page load
+    loadDataset();
+  </script>
+</body>
+</html>
