@@ -1,76 +1,374 @@
-/* Prevent text highlight/selection */
+/* ==========================================================================
+   CSS Design System & Modern Theme
+   ========================================================================== */
+
+:root {
+  /* Color Palette */
+  --bg-app: #f8fafc;
+  --surface: #ffffff;
+  --surface-alt: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --border-focus: #2563eb;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Brand Accents */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-active: #1e40af;
+  --primary-ring: rgba(37, 99, 235, 0.2);
+
+  /* Status Colors */
+  --warning-bg: #fffbeb;
+  --warning-border: #fef3c7;
+  --warning-text: #b45309;
+
+  --error-bg: #fef2f2;
+  --error-border: #fee2e2;
+  --error-text: #b91c1c;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================================================
+   Base & Reset
+   ========================================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding: 40px 20px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Anti-copy & selection protection */
 .no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  font-family: Arial, sans-serif;
-  padding: 20px;
 }
 
-.search-container {
-  max-width: 1000px;
+/* App Wrapper Layout */
+.app-wrapper {
+  max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ==========================================================================
+   Header Section
+   ========================================================================== */
+
+.header-section {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 8px auto;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+}
+
+.portal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+
+.portal-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.portal-subtitle strong {
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   Card Elements
+   ========================================================================== */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Search Form Card
+   ========================================================================== */
+
+.search-card {
+  padding: 32px;
 }
 
 .search-form {
   display: flex;
-  gap: 12px;
-  align-items: flex-end;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.inputs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .form-group {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .form-group label {
-  font-weight: bold;
-  margin-bottom: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .form-group input {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-main);
+  background-color: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 4px var(--primary-ring);
+}
+
+/* "OR" Divider Styling */
 .form-divider {
-  align-self: center;
-  font-weight: bold;
-  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 24px;
 }
 
-.form-actions button {
-  padding: 8px 16px;
+.form-divider span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+/* Action Buttons */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid transparent;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.hidden {
-  display: none;
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--text-inverse);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  background-color: var(--primary-active);
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: #fff;
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.btn-secondary:hover {
+  background-color: var(--surface-alt);
+  color: var(--text-main);
+  border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   Status & Feedback Messages
+   ========================================================================== */
+
+.status-message {
+  text-align: center;
+  font-size: 0.925rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.status-message.warning {
+  padding: 14px 20px;
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+}
+
+.status-message.error {
+  padding: 14px 20px;
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+}
+
+/* ==========================================================================
+   Data Table Section
+   ========================================================================== */
+
+.table-card {
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .results-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-}
-
-.results-table th, 
-.results-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  font-size: 0.875rem;
   text-align: left;
 }
 
 .results-table th {
-  background-color: #f4f4f4;
+  background-color: var(--surface-alt);
+  color: #334155;
+  font-weight: 600;
+  padding: 14px 16px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 
-.status-message {
-  margin: 10px 0;
-  font-weight: bold;
+.results-table td {
+  padding: 14px 16px;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
-.status-message.error { color: #d9534f; }
-.status-message.warning { color: #f0ad4e; }
+
+/* Zebra Striping */
+.results-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Row Hover State */
+.results-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Hide helper */
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  body {
+    padding: 24px 12px;
+  }
+
+  .search-card {
+    padding: 20px;
+  }
+
+  .inputs-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-divider {
+    padding-top: 0;
+    margin: 4px 0;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .portal-title {
+    font-size: 1.5rem;
+  }
+}
