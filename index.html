@@ -4,98 +4,123 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Elector Verification Portal</title>
-  <!-- Link your separate CSS file here -->
+  <!-- Modern Sans Font (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Link external CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="no-select">
 
-  <div class="search-container">
-    <h2>Elector Record Lookup</h2>
-    <p class="subtitle">Search by EPIC Number (Column C) or Elector Name (Column D)</p>
+  <main class="app-wrapper">
+    <!-- Header Section -->
+    <header class="header-section">
+      <div class="badge">Official Verification Portal</div>
+      <h1 class="portal-title">Elector Record Lookup</h1>
+      <p class="portal-subtitle">Search registered electors strictly by <strong>EPIC Number</strong> (Column C) or <strong>Elector Name</strong> (Column D)</p>
+    </header>
 
-    <form id="searchForm" class="search-form">
-      <div class="form-group">
-        <label for="epicInput">EPIC Number</label>
-        <input 
-          type="text" 
-          id="epicInput" 
-          placeholder="Enter exact EPIC Number" 
-          autocomplete="off"
-        />
-      </div>
+    <!-- Search Form Card -->
+    <section class="card search-card">
+      <form id="searchForm" class="search-form">
+        <div class="inputs-row">
+          
+          <div class="form-group">
+            <label for="epicInput">EPIC Number</label>
+            <input 
+              type="text" 
+              id="epicInput" 
+              placeholder="e.g. ABC1234567" 
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
 
-      <div class="form-divider">OR</div>
+          <div class="form-divider" aria-hidden="true">
+            <span>OR</span>
+          </div>
 
-      <div class="form-group">
-        <label for="nameInput">Elector Name</label>
-        <input 
-          type="text" 
-          id="nameInput" 
-          placeholder="Enter exact Elector Name" 
-          autocomplete="off"
-        />
-      </div>
+          <div class="form-group">
+            <label for="nameInput">Elector Name</label>
+            <input 
+              type="text" 
+              id="nameInput" 
+              placeholder="e.g. John Doe" 
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
 
-      <div class="form-actions">
-        <button type="submit" id="searchBtn">Search</button>
-        <button type="button" id="resetBtn">Clear</button>
-      </div>
-    </form>
+        </div>
 
+        <div class="form-actions">
+          <button type="submit" id="searchBtn" class="btn btn-primary">
+            <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+            </svg>
+            Search Record
+          </button>
+          <button type="button" id="resetBtn" class="btn btn-secondary">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Status & Alerts -->
     <div id="statusMessage" class="status-message" aria-live="polite"></div>
 
-    <div class="results-wrapper">
-      <table id="resultsTable" class="results-table hidden">
-        <thead>
-          <tr>
-            <th>PS No.</th>
-            <th>Serial No.</th>
-            <th>EPIC Number</th>
-            <th>Elector Name</th>
-            <th>Relative Details</th>
-            <th>Mapping Category</th>
-            <th>DOB / Age</th>
-            <th>Uncollectable Reason</th>
-            <th>Photo Uploaded</th>
-            <th>Take Action</th>
-          </tr>
-        </thead>
-        <tbody id="resultsBody"></tbody>
-      </table>
-    </div>
-  </div>
+    <!-- Data Results Container -->
+    <section id="tableContainer" class="card table-card hidden">
+      <div class="table-responsive">
+        <table id="resultsTable" class="results-table">
+          <thead>
+            <tr>
+              <th>PS No.</th>
+              <th>Serial No.</th>
+              <th>EPIC Number</th>
+              <th>Elector Name</th>
+              <th>Relative Details</th>
+              <th>Mapping Category</th>
+              <th>DOB / Age</th>
+              <th>Take Action</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <script>
-    // --- Configuration ---
-    // Converting the /pubhtml link to /pub?output=csv for client-side parsing
+    // Sheet CSV endpoint
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqKT_x9zT22htigvfOqx2hTFggz9kFNAT5UA2zYcmsJCNouhYD6F-8sg_LJFmZUQ/pub?gid=1096796837&single=true&output=csv";
 
-    // Column Mapping (0-indexed based on CSV structure)
-    // Col A: PS No (0), Col B: Serial (1), Col C: EPIC (2), Col D: Name (3)
-    const COL_EPIC = 2;
-    const COL_NAME = 3;
+    const COL_EPIC = 2; // Column C
+    const COL_NAME = 3; // Column D
+
+    // Indices of the columns to display (skips index 7: Uncollectable Reason & index 8: Photo Uploaded)
+    const DISPLAY_COL_INDICES = [0, 1, 2, 3, 4, 5, 6, 9];
 
     let dataset = [];
 
-    // --- Security & Anti-Copy Features ---
+    // Privacy & Security: Prevent Selection, Shortcuts & Context Menu
     document.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('keydown', (e) => {
-      // Prevent Ctrl+C, Ctrl+U, Ctrl+S, Ctrl+A, F12
       if (
-        (e.ctrlKey && ['c', 'u', 's', 'a'].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && ['c', 'u', 's', 'a', 'p'].includes(e.key.toLowerCase())) ||
         e.key === 'F12'
       ) {
         e.preventDefault();
       }
     });
 
-    // Helper: Mask 10-digit mobile numbers to show only the last 4 digits (e.g., ******1234)
+    // Mask phone numbers to last 4 digits
     function maskMobileNumbers(text) {
       if (!text) return "";
       return text.toString().replace(/\b(?:\+?\d{1,3}[- ]?)?(\d{6})(\d{4})\b/g, "******$2");
     }
 
-    // CSV Parser handling quoted fields and commas
+    // CSV Parser supporting quotes and commas
     function parseCSV(text) {
       const lines = text.trim().split(/\r\n|\n/);
       return lines.map(line => {
@@ -121,43 +146,43 @@
       });
     }
 
-    // Fetch Google Sheet dataset on load (silently, without displaying counts)
+    // Load dataset silently
     async function loadDataset() {
       const statusEl = document.getElementById("statusMessage");
       try {
         const response = await fetch(SHEET_CSV_URL);
-        if (!response.ok) throw new Error("Failed to load records");
+        if (!response.ok) throw new Error();
         const csvData = await response.text();
         const parsed = parseCSV(csvData);
-        // Exclude header row
-        dataset = parsed.slice(1);
+        dataset = parsed.slice(1); // Drop header
       } catch (err) {
-        statusEl.textContent = "Unable to connect to database. Please check connection.";
+        statusEl.textContent = "Unable to connect to the database. Please try again later.";
         statusEl.className = "status-message error";
       }
     }
 
-    // --- Search Handler ---
+    // Handle Form Submit
     document.getElementById("searchForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
       const epicQuery = document.getElementById("epicInput").value.trim();
       const nameQuery = document.getElementById("nameInput").value.trim();
       const statusEl = document.getElementById("statusMessage");
-      const table = document.getElementById("resultsTable");
+      const tableContainer = document.getElementById("tableContainer");
       const tbody = document.getElementById("resultsBody");
 
       tbody.innerHTML = "";
       statusEl.textContent = "";
-      table.classList.add("hidden");
+      statusEl.className = "status-message";
+      tableContainer.classList.add("hidden");
 
       if (!epicQuery && !nameQuery) {
-        statusEl.textContent = "Please enter an EPIC Number or Elector Name.";
-        statusEl.className = "status-message error";
+        statusEl.textContent = "Please provide an EPIC Number or Elector Name to search.";
+        statusEl.className = "status-message warning";
         return;
       }
 
-      // Filter dataset with Strict Exact Matching (Case-insensitive)
+      // Exact strict search
       const matches = dataset.filter(row => {
         const rowEpic = (row[COL_EPIC] || "").trim();
         const rowName = (row[COL_NAME] || "").trim();
@@ -174,35 +199,37 @@
       });
 
       if (matches.length === 0) {
-        statusEl.textContent = "No matching record found.";
+        statusEl.textContent = "No matching records found for the provided details.";
         statusEl.className = "status-message warning";
         return;
       }
 
-      // Render matching rows (values sanitized and masked)
+      // Render only desired columns
       matches.forEach(row => {
         const tr = document.createElement("tr");
-        for (let i = 0; i < 10; i++) {
+        DISPLAY_COL_INDICES.forEach(colIndex => {
           const td = document.createElement("td");
-          const rawVal = row[i] || "-";
+          const rawVal = row[colIndex] || "-";
           td.textContent = maskMobileNumbers(rawVal);
           tr.appendChild(td);
-        }
+        });
         tbody.appendChild(tr);
       });
 
-      table.classList.remove("hidden");
+      tableContainer.classList.remove("hidden");
     });
 
-    // Reset button
+    // Handle Reset
     document.getElementById("resetBtn").addEventListener("click", function() {
       document.getElementById("searchForm").reset();
       document.getElementById("resultsBody").innerHTML = "";
-      document.getElementById("resultsTable").classList.add("hidden");
-      document.getElementById("statusMessage").textContent = "";
+      document.getElementById("tableContainer").classList.add("hidden");
+      const statusEl = document.getElementById("statusMessage");
+      statusEl.textContent = "";
+      statusEl.className = "status-message";
     });
 
-    // Initialize on page load
+    // Run loader
     loadDataset();
   </script>
 </body>
