@@ -5,14 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anomalies List of 112-Khammam Assembly Constituency</title>
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse for reliable CSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header -->
   <header class="bg-indigo-900 text-white shadow-md">
     <div class="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">
@@ -26,16 +23,13 @@
 
   <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full">
     
-    <!-- Status / Ready Banner -->
     <div id="statusBanner" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center justify-between">
       <span id="statusText">⏳ Connecting to database...</span>
     </div>
 
-    <!-- Search Form Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
       <form id="searchForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         
-        <!-- EPIC Number Input -->
         <div class="lg:col-span-2">
           <label for="epicInput" class="block text-sm font-semibold text-slate-700 mb-1">
             EPIC Number
@@ -48,7 +42,6 @@
           />
         </div>
 
-        <!-- Elector Name Input -->
         <div class="lg:col-span-2">
           <label for="nameInput" class="block text-sm font-semibold text-slate-700 mb-1">
             Elector Name
@@ -61,7 +54,6 @@
           />
         </div>
 
-        <!-- Action Buttons -->
         <div class="lg:col-span-1 flex items-end gap-2">
           <button 
             type="submit" 
@@ -81,7 +73,6 @@
       </form>
     </div>
 
-    <!-- Results Header -->
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold text-slate-800">
         Search Results
@@ -89,7 +80,6 @@
       <span id="resultCount" class="text-sm font-semibold text-indigo-700"></span>
     </div>
 
-    <!-- Results Container -->
     <div id="resultsContainer" class="space-y-4">
       <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
         Please enter an EPIC number or Elector Name above to find details.
@@ -99,7 +89,18 @@
   </main>
 
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-    Anomalies Portal &bull; 112-Khammam Assembly Constituency
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <span>Anomalies Portal &bull; 112-Khammam Assembly Constituency</span>
+      <span class="hidden sm:inline text-slate-300">&bull;</span>
+      <span class="inline-flex items-center gap-1.5">
+        <span class="text-slate-600 font-medium">Visitors:</span>
+        <img 
+          src="https://hits.sh/sandeepbeligini.github.io/Anomalies-List.svg?label=Views&color=4338ca&labelColor=1e1b4b" 
+          alt="Visitor Counter" 
+          class="inline-block h-5 align-middle"
+        />
+      </span>
+    </div>
   </footer>
 
   <script>
