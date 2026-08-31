@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anomalies List of 112-Khammam Assembly Constituency</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PapaParse for reliable CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-indigo-900 text-white shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">
+        Anomalies List of 112-Khammam Assembly Constituency
+      </h1>
+      <p class="text-indigo-200 text-sm mt-1 text-center sm:text-left">
+        Search voter records by EPIC Number or Elector Name
+      </p>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full">
+    
+    <!-- Status / Ready Banner (Total count is hidden) -->
+    <div id="statusBanner" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center justify-between">
+      <span id="statusText">⏳ Connecting to database...</span>
+    </div>
+
+    <!-- Search Form Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+      <form id="searchForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        <!-- EPIC Number Input -->
+        <div class="lg:col-span-2">
+          <label for="epicInput" class="block text-sm font-semibold text-slate-700 mb-1">
+            EPIC Number
+          </label>
+          <input 
+            type="text" 
+            id="epicInput" 
+            placeholder="e.g. ABC1234567" 
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none uppercase placeholder-slate-400"
+          />
+        </div>
+
+        <!-- Elector Name Input -->
+        <div class="lg:col-span-2">
+          <label for="nameInput" class="block text-sm font-semibold text-slate-700 mb-1">
+            Elector Name
+          </label>
+          <input 
+            type="text" 
+            id="nameInput" 
+            placeholder="e.g. Ramesh" 
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none placeholder-slate-400"
+          />
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="lg:col-span-1 flex items-end gap-2">
+          <button 
+            type="submit" 
+            class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          >
+            Search
+          </button>
+          <button 
+            type="button" 
+            id="resetBtn"
+            class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2.5 px-4 rounded-lg transition"
+          >
+            Reset
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Results Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold text-slate-800">
+        Search Results
+      </h2>
+      <!-- Only populated after a user searches -->
+      <span id="resultCount" class="text-sm font-semibold text-indigo-700"></span>
+    </div>
+
+    <!-- Results Container -->
+    <div id="resultsContainer" class="space-y-4">
+      <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+        Please enter an EPIC number or Elector Name above to find details.
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    Anomalies Portal &bull; 112-Khammam Assembly Constituency
+  </footer>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqKT_x9zT22htigvfOqx2hTFggz9kFNAT5UA2zYcmsJCNouhYD6F-8sg_LJFmZUQ/pub?gid=2033351081&single=true&output=csv";
+
+    let rawData = [];
+    let headers = [];
+    let epicColKey = "";
+    let nameColKey = "";
+
+    const statusBanner = document.getElementById("statusBanner");
+    const statusText = document.getElementById("statusText");
+    const resultsContainer = document.getElementById("resultsContainer");
+    const resultCount = document.getElementById("resultCount");
+    const searchForm = document.getElementById("searchForm");
+    const epicInput = document.getElementById("epicInput");
+    const nameInput = document.getElementById("nameInput");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function loadData() {
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (results.data && results.data.length > 0) {
+            rawData = results.data;
+            headers = results.meta.fields || Object.keys(rawData[0]);
+            
+            // Auto-detect EPIC and Name headers
+            epicColKey = headers.find(h => /epic|voter\s*id|card/i.test(h)) || headers[0];
+            nameColKey = headers.find(h => /name|elector/i.test(h)) || headers[1] || headers[0];
+
+            // Shows readiness without revealing total database row count
+            statusBanner.className = "mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between";
+            statusText.textContent = "✓ Ready. Enter search criteria to view records.";
+          } else {
+            showError("No records found in spreadsheet.");
+          }
+        },
+        error: function(err) {
+          showError("Unable to fetch data from the spreadsheet link.");
+          console.error(err);
+        }
+      });
+    }
+
+    function showError(msg) {
+      statusBanner.className = "mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm";
+      statusText.textContent = `⚠️ Error: ${msg}`;
+    }
+
+    function executeSearch() {
+      const searchEpic = epicInput.value.trim().toUpperCase();
+      const searchName = nameInput.value.trim().toLowerCase();
+
+      if (!searchEpic && !searchName) {
+        resultsContainer.innerHTML = `
+          <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+            Please enter an EPIC number or Elector Name above to find details.
+          </div>
+        `;
+        resultCount.textContent = "";
+        return;
+      }
+
+      const filtered = rawData.filter(row => {
+        let epicVal = (row[epicColKey] || "").toString().trim().toUpperCase();
+        let nameVal = (row[nameColKey] || "").toString().trim().toLowerCase();
+        let fullRowStr = Object.values(row).join(" ").toLowerCase();
+
+        let matchesEpic = !searchEpic || epicVal.includes(searchEpic) || fullRowStr.includes(searchEpic.toLowerCase());
+        let matchesName = !searchName || nameVal.includes(searchName) || fullRowStr.includes(searchName);
+
+        return matchesEpic && matchesName;
+      });
+
+      renderCardResults(filtered);
+    }
+
+    function renderCardResults(rows) {
+      resultsContainer.innerHTML = "";
+      resultCount.textContent = `${rows.length} matching record${rows.length === 1 ? '' : 's'} found`;
+
+      if (rows.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center text-amber-700">
+            No matching records found for the entered search details.
+          </div>
+        `;
+        return;
+      }
+
+      rows.forEach((row, index) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:border-indigo-300 transition duration-150";
+
+        let fieldsHtml = "";
+        headers.forEach(h => {
+          const val = row[h] ? String(row[h]).trim() : "-";
+          fieldsHtml += `
+            <div class="p-3 bg-slate-50/70 rounded-lg border border-slate-100 flex flex-col justify-between">
+              <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 break-words">${h}</span>
+              <span class="text-sm font-medium text-slate-800 break-words whitespace-normal">${val}</span>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="bg-indigo-50/60 px-4 py-2.5 border-b border-indigo-100 flex justify-between items-center">
+            <span class="text-xs font-bold text-indigo-900 tracking-wider">RECORD #${index + 1}</span>
+            <span class="text-xs font-semibold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded">112-Khammam</span>
+          </div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            ${fieldsHtml}
+          </div>
+        `;
+
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      executeSearch();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      epicInput.value = "";
+      nameInput.value = "";
+      resultCount.textContent = "";
+      resultsContainer.innerHTML = `
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+          Please enter an EPIC number or Elector Name above to find details.
+        </div>
+      `;
+    });
+
+    window.addEventListener("DOMContentLoaded", loadData);
+  </script>
+</body>
+</html>
