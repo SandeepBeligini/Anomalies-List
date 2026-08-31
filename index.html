@@ -1,94 +1,838 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elector Record Lookup Portal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIR-2026 Anomalies List and Notices - 112-Khammam</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            user-select: none;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            background: white;
+            padding: 25px 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 700;
+            color: #123b6d;
+        }
+
+        .header h2 {
+            margin: 10px 0 0 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* SEARCH AREA */
+        .search-box {
+            margin-top: 25px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .search-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            font-size: 16px;
+            user-select: text;
+        }
+
+        .search-field input:focus {
+            outline: none;
+            border-color: #1769aa;
+            box-shadow: 0 0 4px rgba(23,105,170,0.3);
+        }
+
+        .submit-btn {
+            padding: 12px 28px;
+            background: #1769aa;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 130px;
+        }
+
+        .submit-btn:hover {
+            background: #0d4f82;
+        }
+
+        /* STATUS */
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: block !important;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success {
+            display: block !important;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            display: block !important;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* RESULTS */
+        .results-container {
+            margin-top: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+            overflow-x: auto;
+        }
+
+        .results-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #123b6d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #123b6d;
+            color: white;
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        td {
+            padding: 11px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background: #f7f7f7;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 16px;
+        }
+
+        /* MOBILE */
+        @media (max-width: 700px) {
+
+            .container {
+                width: 96%;
+                margin-top: 15px;
+            }
+
+            .header h1 {
+                font-size: 23px;
+            }
+
+            .header h2 {
+                font-size: 15px;
+            }
+
+            .search-row {
+                display: block;
+            }
+
+            .search-field {
+                margin-bottom: 15px;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
-<body class="no-select">
 
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
-  <div class="glow-orb orb-3"></div>
+<body
+    oncontextmenu="return false"
+    onselectstart="return false"
+    ondragstart="return false"
+    oncopy="return false"
+    oncut="return false"
+>
 
-  <main class="page-center-wrapper">
-    <div class="app-card-wrapper">
+<div class="container">
 
-      <header class="portal-header">
-        <div class="multicolor-pill">
-          <span class="pill-dot"></span> Official Verification System
+    <!-- HEADER -->
+    <div class="header">
+
+        <h1>
+            SIR-2026 Anomalies List and Notices
+        </h1>
+
+        <h2>
+            (This is only 112-Khammam Assembly Constituency only)
+        </h2>
+
+    </div>
+
+
+    <!-- SEARCH SECTION -->
+    <div class="search-box">
+
+        <div class="search-row">
+
+            <!-- EPIC SEARCH -->
+            <div class="search-field">
+
+                <label for="epicNumber">
+                    EPIC Number
+                </label>
+
+                <input
+                    type="text"
+                    id="epicNumber"
+                    placeholder="Enter EPIC Number"
+                    autocomplete="off"
+                    onkeydown="checkEnter(event)"
+                >
+
+            </div>
+
+
+            <!-- ELECTOR NAME SEARCH -->
+            <div class="search-field">
+
+                <label for="electorName">
+                    Elector Name
+                </label>
+
+                <input
+                    type="text"
+                    id="electorName"
+                    placeholder="Enter Elector Name"
+                    autocomplete="off"
+                    onkeydown="checkEnter(event)"
+                >
+
+            </div>
+
+
+            <!-- SUBMIT -->
+            <div class="search-field" style="flex:0 0 auto;">
+
+                <button
+                    class="submit-btn"
+                    onclick="performSearch()"
+                >
+                    Submit
+                </button>
+
+            </div>
+
         </div>
-        <h1 class="gradient-heading">Elector Record Lookup</h1>
-        <p class="header-desc">Search registered voters by <span>EPIC Number</span> or <span>Elector Name</span></p>
-      </header>
 
-      <section class="multicolor-box search-box-container">
-        <form id="searchForm" class="search-grid-form">
-          <div class="inputs-flex">
-            
-            <div class="input-block epic-accent">
-              <label for="epicInput">
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
-                </svg>
-                EPIC Number
-              </label>
-              <input 
-                type="text" 
-                id="epicInput" 
-                placeholder="Enter exact EPIC (e.g. ABC1234567)" 
-                autocomplete="off"
-                spellcheck="false"
-              />
+
+        <div id="status"></div>
+
+    </div>
+
+
+    <!-- RESULTS -->
+    <div class="results-container">
+
+        <div class="results-title">
+            Search Results
+        </div>
+
+        <div id="results">
+
+            <div class="no-results">
+                Enter EPIC Number or Elector Name and click Submit.
             </div>
 
-            <div class="or-separator">
-              <span>OR</span>
-            </div>
+        </div>
 
-            <div class="input-block name-accent">
-              <label for="nameInput">
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                </svg>
-                Elector Name
-              </label>
-              <input 
-                type="text" 
-                id="nameInput" 
-                placeholder="Enter exact name (e.g. John Doe)" 
-                autocomplete="off"
-                spellcheck="false"
-              />
-            </div>
+    </div>
 
-          </div>
+</div>
 
-          <div class="form-btn-row">
-            <button type="submit" id="searchBtn" class="btn btn-search">
-              <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-              </svg>
-              Search Records
-            </button>
-            <button type="button" id="resetBtn" class="btn btn-clear">Clear Form</button>
-          </div>
-        </form>
-      </section>
 
-      <div id="statusMessage" class="status-box hidden" aria-live="polite"></div>
+<script>
 
-      <section id="tableContainer" class="multicolor-box table-box-container hidden">
-        <div class="table-responsive">
-          <table id="resultsTable" class="styled-table">
-            <thead>
-              <tr>
-                <th>PS No.</th>
-                <th>Serial No.</th>
-                <th>EPIC Number</th>
-                <th>Elector Name</th>
-                <th>Relative
+    /* =========================================================
+       GOOGLE SHEET CSV URL
+       ========================================================= */
+
+    const CSV_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1oonmnEBYrJX9ggy6mbu4gNgoEC7BlggBx7sPdEg0DY7lE4U1gbxJeSwYdRhdS1eeidmTDNFiGlYX/pub?gid=371449964&single=true&output=csv";
+
+
+    /* =========================================================
+       DATA STORAGE
+       ========================================================= */
+
+    let sheetData = [];
+
+
+
+    /* =========================================================
+       CSV PARSER
+       Handles commas inside quoted cells
+       ========================================================= */
+
+    function parseCSV(csv) {
+
+        const rows = [];
+
+        let row = [];
+        let cell = "";
+        let insideQuotes = false;
+
+        for (let i = 0; i < csv.length; i++) {
+
+            const char = csv[i];
+            const next = csv[i + 1];
+
+            if (char === '"' && insideQuotes && next === '"') {
+
+                cell += '"';
+                i++;
+
+            }
+            else if (char === '"') {
+
+                insideQuotes = !insideQuotes;
+
+            }
+            else if (char === "," && !insideQuotes) {
+
+                row.push(cell);
+                cell = "";
+
+            }
+            else if ((char === "\n" || char === "\r") && !insideQuotes) {
+
+                if (char === "\r" && next === "\n") {
+                    i++;
+                }
+
+                row.push(cell);
+                cell = "";
+
+                if (row.some(value => value.trim() !== "")) {
+                    rows.push(row);
+                }
+
+                row = [];
+
+            }
+            else {
+
+                cell += char;
+
+            }
+        }
+
+        if (cell !== "" || row.length > 0) {
+
+            row.push(cell);
+
+            if (row.some(value => value.trim() !== "")) {
+                rows.push(row);
+            }
+
+        }
+
+        return rows;
+    }
+
+
+
+    /* =========================================================
+       LOAD GOOGLE SHEET DATA
+       ========================================================= */
+
+    async function loadData() {
+
+        const status = document.getElementById("status");
+
+        status.className = "loading";
+        status.innerText = "Loading data...";
+
+        try {
+
+            const response = await fetch(CSV_URL, {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("Unable to load Google Sheet.");
+            }
+
+            const csvText = await response.text();
+
+            sheetData = parseCSV(csvText);
+
+            if (sheetData.length === 0) {
+                throw new Error("No data found.");
+            }
+
+            status.className = "success";
+            status.innerText =
+                "Data loaded successfully.";
+
+            setTimeout(() => {
+                status.style.display = "none";
+            }, 2500);
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            status.className = "error";
+
+            status.innerText =
+                "Unable to load data from Google Sheet.";
+
+        }
+    }
+
+
+
+    /* =========================================================
+       ENTER KEY
+       ========================================================= */
+
+    function checkEnter(event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            performSearch();
+
+        }
+
+    }
+
+
+
+    /* =========================================================
+       SEARCH
+       ========================================================= */
+
+    function performSearch() {
+
+        const epic =
+            document
+                .getElementById("epicNumber")
+                .value
+                .trim()
+                .toLowerCase();
+
+        const elector =
+            document
+                .getElementById("electorName")
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        const resultsDiv =
+            document.getElementById("results");
+
+
+        /* No search values */
+
+        if (epic === "" && elector === "") {
+
+            resultsDiv.innerHTML =
+                '<div class="no-results">' +
+                'Please enter EPIC Number or Elector Name.' +
+                '</div>';
+
+            return;
+        }
+
+
+        /* Make sure data exists */
+
+        if (sheetData.length <= 1) {
+
+            resultsDiv.innerHTML =
+                '<div class="no-results">' +
+                'No data available.' +
+                '</div>';
+
+            return;
+        }
+
+
+        /*
+         IMPORTANT:
+
+         Column G = index 6
+         Column H = index 7
+
+         JavaScript arrays start at 0.
+        */
+
+
+        const filtered = sheetData
+            .slice(1)
+            .filter(row => {
+
+                const epicValue =
+                    (row[6] || "")
+                    .trim()
+                    .toLowerCase();
+
+                const nameValue =
+                    (row[7] || "")
+                    .trim()
+                    .toLowerCase();
+
+
+                /*
+                 Search conditions
+
+                 EPIC entered:
+                 exact EPIC match
+
+                 Name entered:
+                 partial name match
+
+                 Both entered:
+                 BOTH conditions must match
+                */
+
+                let epicMatch = true;
+                let nameMatch = true;
+
+
+                if (epic !== "") {
+
+                    epicMatch =
+                        epicValue === epic;
+
+                }
+
+
+                if (elector !== "") {
+
+                    nameMatch =
+                        nameValue.includes(elector);
+
+                }
+
+
+                return epicMatch && nameMatch;
+
+            });
+
+
+        displayResults(filtered);
+
+    }
+
+
+
+    /* =========================================================
+       DISPLAY RESULTS
+       ========================================================= */
+
+    function displayResults(rows) {
+
+        const resultsDiv =
+            document.getElementById("results");
+
+
+        if (rows.length === 0) {
+
+            resultsDiv.innerHTML =
+                '<div class="no-results">' +
+                'No matching records found.' +
+                '</div>';
+
+            return;
+        }
+
+
+        let html = "";
+
+        html += "<table>";
+
+        html += "<thead>";
+
+        html += "<tr>";
+
+        html += "<th>S.No</th>";
+
+        html += "<th>EPIC Number</th>";
+
+        html += "<th>Elector Name</th>";
+
+        html += "</tr>";
+
+        html += "</thead>";
+
+        html += "<tbody>";
+
+
+        rows.forEach((row, index) => {
+
+            const epic =
+                escapeHTML(row[6] || "");
+
+            const name =
+                escapeHTML(row[7] || "");
+
+
+            html += "<tr>";
+
+            html +=
+                "<td>" +
+                (index + 1) +
+                "</td>";
+
+            html +=
+                "<td>" +
+                epic +
+                "</td>";
+
+            html +=
+                "<td>" +
+                name +
+                "</td>";
+
+            html += "</tr>";
+
+        });
+
+
+        html += "</tbody>";
+
+        html += "</table>";
+
+
+        resultsDiv.innerHTML = html;
+
+    }
+
+
+
+    /* =========================================================
+       HTML SECURITY / ESCAPE
+       ========================================================= */
+
+    function escapeHTML(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+
+    /* =========================================================
+       KEYBOARD SHORTCUT RESTRICTIONS
+       ========================================================= */
+
+    document.addEventListener("keydown", function(event) {
+
+        const key =
+            event.key.toLowerCase();
+
+        const isCtrlOrMeta =
+            event.ctrlKey || event.metaKey;
+
+
+        if (!isCtrlOrMeta) {
+            return;
+        }
+
+
+        const allowedKeys = [
+            "c",
+            "a",
+            "u",
+            "s",
+            "p",
+            "x"
+        ];
+
+
+        if (!allowedKeys.includes(key)) {
+            return;
+        }
+
+
+        /*
+         Allow copy/cut/select-all inside
+         input and textarea fields.
+        */
+
+        const target =
+            event.target;
+
+        const isInput =
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA";
+
+
+        if (isInput) {
+
+            /*
+             Allow:
+             Ctrl+C
+             Ctrl+X
+             Ctrl+A
+             */
+
+            if (
+                key === "c" ||
+                key === "x" ||
+                key === "a"
+            ) {
+
+                return;
+
+            }
+
+        }
+
+
+        /*
+         Block:
+         Ctrl+U
+         Ctrl+S
+         Ctrl+P
+
+         Also block Ctrl+C/X/A outside inputs.
+        */
+
+        event.preventDefault();
+
+    });
+
+
+
+    /* =========================================================
+       BODY EVENT RESTRICTIONS
+       ========================================================= */
+
+    document.body.oncontextmenu =
+        function() {
+            return false;
+        };
+
+
+    document.body.onselectstart =
+        function() {
+            return false;
+        };
+
+
+    document.body.ondragstart =
+        function() {
+            return false;
+        };
+
+
+    document.body.oncopy =
+        function() {
+            return false;
+        };
+
+
+    document.body.oncut =
+        function() {
+            return false;
+        };
+
+
+
+    /* =========================================================
+       INITIAL LOAD
+       ========================================================= */
+
+    window.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            loadData();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
