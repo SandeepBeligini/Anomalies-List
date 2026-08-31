@@ -1,42 +1,463 @@
-/* =========================================================
-       DISPLAY RESULTS (DYNAMIC FULL ROW)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIR-2026 Anomalies List and Notices - 112-Khammam</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+            user-select: none;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            background: white;
+            padding: 25px 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 700;
+            color: #123b6d;
+        }
+
+        .header h2 {
+            margin: 10px 0 0 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* SEARCH AREA */
+        .search-box {
+            margin-top: 25px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .search-field {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .search-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            font-size: 16px;
+            user-select: text;
+        }
+
+        .search-field input:focus {
+            outline: none;
+            border-color: #1769aa;
+            box-shadow: 0 0 4px rgba(23,105,170,0.3);
+        }
+
+        .submit-btn {
+            padding: 12px 28px;
+            background: #1769aa;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 130px;
+        }
+
+        .submit-btn:hover {
+            background: #0d4f82;
+        }
+
+        /* STATUS */
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: block !important;
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success {
+            display: block !important;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            display: block !important;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* RESULTS */
+        .results-container {
+            margin-top: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+            overflow-x: auto;
+        }
+
+        .results-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #123b6d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #123b6d;
+            color: white;
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 11px;
+            border: 1px solid #ccc;
+            text-align: left;
+            font-size: 14px;
+            user-select: text;
+        }
+
+        tr:nth-child(even) {
+            background: #f7f7f7;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 16px;
+        }
+
+        /* MOBILE */
+        @media (max-width: 700px) {
+            .container {
+                width: 96%;
+                margin-top: 15px;
+            }
+
+            .header h1 {
+                font-size: 23px;
+            }
+
+            .header h2 {
+                font-size: 15px;
+            }
+
+            .search-row {
+                display: block;
+            }
+
+            .search-field {
+                margin-bottom: 15px;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body
+    oncontextmenu="return false"
+    onselectstart="return false"
+    ondragstart="return false"
+    oncopy="return false"
+    oncut="return false"
+>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>SIR-2026 Anomalies List and Notices</h1>
+        <h2>(This is only 112-Khammam Assembly Constituency only)</h2>
+    </div>
+
+    <!-- SEARCH SECTION -->
+    <div class="search-box">
+        <div class="search-row">
+
+            <!-- EPIC SEARCH -->
+            <div class="search-field">
+                <label for="epicNumber">EPIC Number</label>
+                <input
+                    type="text"
+                    id="epicNumber"
+                    placeholder="Enter EPIC Number"
+                    autocomplete="off"
+                    onkeydown="checkEnter(event)"
+                >
+            </div>
+
+            <!-- ELECTOR NAME SEARCH -->
+            <div class="search-field">
+                <label for="electorName">Elector Name</label>
+                <input
+                    type="text"
+                    id="electorName"
+                    placeholder="Enter Elector Name"
+                    autocomplete="off"
+                    onkeydown="checkEnter(event)"
+                >
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="search-field" style="flex:0 0 auto;">
+                <button class="submit-btn" onclick="performSearch()">
+                    Submit
+                </button>
+            </div>
+
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-container">
+        <div class="results-title">Search Results</div>
+        <div id="results">
+            <div class="no-results">
+                Enter EPIC Number or Elector Name and click Submit.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================================
+       GOOGLE SHEET CSV URL
        ========================================================= */
+    const CSV_URL =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1oonmnEBYrJX9ggy6mbu4gNgoEC7BlggBx7sPdEg0DY7lE4U1gbxJeSwYdRhdS1eeidmTDNFiGlYX/pub?gid=371449964&single=true&output=csv";
 
-    function displayResults(rows) {
+    /* =========================================================
+       DATA STORAGE
+       ========================================================= */
+    let sheetData = [];
 
+    /* =========================================================
+       CSV PARSER
+       Handles commas inside quoted cells
+       ========================================================= */
+    function parseCSV(csv) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let insideQuotes = false;
+
+        for (let i = 0; i < csv.length; i++) {
+            const char = csv[i];
+            const next = csv[i + 1];
+
+            if (char === '"' && insideQuotes && next === '"') {
+                cell += '"';
+                i++;
+            } else if (char === '"') {
+                insideQuotes = !insideQuotes;
+            } else if (char === "," && !insideQuotes) {
+                row.push(cell);
+                cell = "";
+            } else if ((char === "\n" || char === "\r") && !insideQuotes) {
+                if (char === "\r" && next === "\n") {
+                    i++;
+                }
+                row.push(cell);
+                cell = "";
+
+                if (row.some(value => value.trim() !== "")) {
+                    rows.push(row);
+                }
+                row = [];
+            } else {
+                cell += char;
+            }
+        }
+
+        if (cell !== "" || row.length > 0) {
+            row.push(cell);
+            if (row.some(value => value.trim() !== "")) {
+                rows.push(row);
+            }
+        }
+
+        return rows;
+    }
+
+    /* =========================================================
+       LOAD GOOGLE SHEET DATA
+       ========================================================= */
+    async function loadData() {
+        const status = document.getElementById("status");
+        status.className = "loading";
+        status.innerText = "Loading data...";
+
+        try {
+            const response = await fetch(CSV_URL, { cache: "no-store" });
+
+            if (!response.ok) {
+                throw new Error("Unable to load Google Sheet.");
+            }
+
+            const csvText = await response.text();
+            sheetData = parseCSV(csvText);
+
+            if (sheetData.length === 0) {
+                throw new Error("No data found.");
+            }
+
+            status.className = "success";
+            status.innerText = "Data loaded successfully.";
+
+            setTimeout(() => {
+                status.style.display = "none";
+            }, 2500);
+
+        } catch (error) {
+            console.error(error);
+            status.className = "error";
+            status.innerText = "Unable to load data from Google Sheet.";
+        }
+    }
+
+    /* =========================================================
+       ENTER KEY HANDLER
+       ========================================================= */
+    function checkEnter(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            performSearch();
+        }
+    }
+
+    /* =========================================================
+       SEARCH
+       ========================================================= */
+    function performSearch() {
+        const epic = document.getElementById("epicNumber").value.trim().toLowerCase();
+        const elector = document.getElementById("electorName").value.trim().toLowerCase();
         const resultsDiv = document.getElementById("results");
 
-        if (rows.length === 0) {
-            resultsDiv.innerHTML =
-                '<div class="no-results">' +
-                'No matching records found.' +
-                '</div>';
+        if (epic === "" && elector === "") {
+            resultsDiv.innerHTML = '<div class="no-results">Please enter EPIC Number or Elector Name.</div>';
             return;
         }
 
-        // Get table headers from the first row of the CSV
+        if (sheetData.length <= 1) {
+            resultsDiv.innerHTML = '<div class="no-results">No data available.</div>';
+            return;
+        }
+
+        /* Column G = index 6 (EPIC), Column H = index 7 (Name) */
+        const filtered = sheetData.slice(1).filter(row => {
+            const epicValue = (row[6] || "").trim().toLowerCase();
+            const nameValue = (row[7] || "").trim().toLowerCase();
+
+            let epicMatch = true;
+            let nameMatch = true;
+
+            if (epic !== "") {
+                epicMatch = (epicValue === epic);
+            }
+
+            if (elector !== "") {
+                nameMatch = nameValue.includes(elector);
+            }
+
+            return epicMatch && nameMatch;
+        });
+
+        displayResults(filtered);
+    }
+
+    /* =========================================================
+       DISPLAY RESULTS (DYNAMIC FULL ROW)
+       ========================================================= */
+    function displayResults(rows) {
+        const resultsDiv = document.getElementById("results");
+
+        if (rows.length === 0) {
+            resultsDiv.innerHTML = '<div class="no-results">No matching records found.</div>';
+            return;
+        }
+
+        // Row 0 has the column titles
         const headers = sheetData[0] || [];
 
         let html = "<table><thead><tr>";
-
-        // S.No Header
         html += "<th>S.No</th>";
 
-        // Render each column header dynamically
         headers.forEach(header => {
             html += "<th>" + escapeHTML(header.trim()) + "</th>";
         });
 
         html += "</tr></thead><tbody>";
 
-        // Render each row and its column values
         rows.forEach((row, index) => {
             html += "<tr>";
-            
-            // S.No cell
             html += "<td style='text-align: center; font-weight: bold;'>" + (index + 1) + "</td>";
 
-            // Render every column cell present in the header definition
             headers.forEach((_, colIndex) => {
                 const cellValue = row[colIndex] !== undefined ? row[colIndex] : "";
                 html += "<td>" + escapeHTML(cellValue) + "</td>";
@@ -49,3 +470,57 @@
 
         resultsDiv.innerHTML = html;
     }
+
+    /* =========================================================
+       HTML SECURITY / ESCAPE
+       ========================================================= */
+    function escapeHTML(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    /* =========================================================
+       KEYBOARD SHORTCUT RESTRICTIONS
+       ========================================================= */
+    document.addEventListener("keydown", function(event) {
+        const key = event.key.toLowerCase();
+        const isCtrlOrMeta = event.ctrlKey || event.metaKey;
+
+        if (!isCtrlOrMeta) return;
+
+        const allowedKeys = ["c", "a", "u", "s", "p", "x"];
+        if (!allowedKeys.includes(key)) return;
+
+        const target = event.target;
+        const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+
+        if (isInput && (key === "c" || key === "x" || key === "a")) {
+            return;
+        }
+
+        event.preventDefault();
+    });
+
+    /* =========================================================
+       BODY EVENT RESTRICTIONS
+       ========================================================= */
+    document.body.oncontextmenu = function() { return false; };
+    document.body.onselectstart = function() { return false; };
+    document.body.ondragstart = function() { return false; };
+    document.body.oncopy = function() { return false; };
+    document.body.oncut = function() { return false; };
+
+    /* =========================================================
+       INITIAL LOAD
+       ========================================================= */
+    window.addEventListener("DOMContentLoaded", function() {
+        loadData();
+    });
+</script>
+
+</body>
+</html>
