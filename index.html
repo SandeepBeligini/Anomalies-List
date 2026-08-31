@@ -5,37 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anomalies List of 112-Khammam Assembly Constituency</title>
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse for reliable CSV parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans">
 
-  <!-- Header -->
-  <header class="bg-indigo-900 text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+  <header class="bg-indigo-900 text-white shadow-md">
+    <div class="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
       <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-center sm:text-left">
         Anomalies List of 112-Khammam Assembly Constituency
       </h1>
       <p class="text-indigo-200 text-sm mt-1 text-center sm:text-left">
-        Search voter anomalies by EPIC Number or Elector Name
+        Search voter records by EPIC Number or Elector Name
       </p>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full">
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full">
     
-    <!-- Status / Alert Banner -->
-    <div id="statusBanner" class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center justify-between">
+    <div id="statusBanner" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center justify-between">
       <span id="statusText">⏳ Loading data from Google Sheet...</span>
     </div>
 
-    <!-- Search Form Card -->
-    <div class="bg-white rounded-xl shadow-md border border-slate-200 p-6 mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
       <form id="searchForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         
-        <!-- EPIC Number Input -->
         <div class="lg:col-span-2">
           <label for="epicInput" class="block text-sm font-semibold text-slate-700 mb-1">
             EPIC Number
@@ -48,7 +42,6 @@
           />
         </div>
 
-        <!-- Elector Name Input -->
         <div class="lg:col-span-2">
           <label for="nameInput" class="block text-sm font-semibold text-slate-700 mb-1">
             Elector Name
@@ -61,7 +54,6 @@
           />
         </div>
 
-        <!-- Action Buttons -->
         <div class="lg:col-span-1 flex items-end gap-2">
           <button 
             type="submit" 
@@ -81,29 +73,16 @@
       </form>
     </div>
 
-    <!-- Results Count Header -->
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold text-slate-800" id="resultHeading">
-        Search Results
+      <h2 class="text-lg font-semibold text-slate-800">
+        Matching Records
       </h2>
-      <span id="resultCount" class="text-sm font-medium text-slate-500"></span>
+      <span id="resultCount" class="text-sm font-semibold text-indigo-700"></span>
     </div>
 
-    <!-- Table Container -->
-    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
-      <div class="overflow-x-auto max-h-[600px]">
-        <table id="dataTable" class="min-w-full divide-y divide-slate-200 text-sm text-left">
-          <thead class="bg-slate-100 sticky top-0 z-10 shadow-sm" id="tableHead">
-            <!-- Headers injected dynamically -->
-          </thead>
-          <tbody id="tableBody" class="divide-y divide-slate-100">
-            <tr>
-              <td colspan="100%" class="px-6 py-12 text-center text-slate-400">
-                Please enter an EPIC number or Elector Name above to view records.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div id="resultsContainer" class="space-y-4">
+      <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+        Please enter an EPIC number or Elector Name above to find details.
       </div>
     </div>
 
@@ -113,154 +92,5 @@
     Anomalies Portal &bull; 112-Khammam Assembly Constituency
   </footer>
 
-  <!-- Search & CSV Handling Logic -->
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqKT_x9zT22htigvfOqx2hTFggz9kFNAT5UA2zYcmsJCNouhYD6F-8sg_LJFmZUQ/pub?gid=2033351081&single=true&output=csv";
-
-    let rawData = [];
-    let headers = [];
-    let epicColKey = "";
-    let nameColKey = "";
-
-    const statusBanner = document.getElementById("statusBanner");
-    const statusText = document.getElementById("statusText");
-    const tableHead = document.getElementById("tableHead");
-    const tableBody = document.getElementById("tableBody");
-    const resultCount = document.getElementById("resultCount");
-    const searchForm = document.getElementById("searchForm");
-    const epicInput = document.getElementById("epicInput");
-    const nameInput = document.getElementById("nameInput");
-    const resetBtn = document.getElementById("resetBtn");
-
-    // Fetch and parse CSV
-    function loadData() {
-      Papa.parse(CSV_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          if (results.data && results.data.length > 0) {
-            rawData = results.data;
-            headers = results.meta.fields || Object.keys(rawData[0]);
-            
-            // Detect key columns automatically
-            epicColKey = headers.find(h => /epic|voter\s*id|card\s*no/i.test(h)) || headers[0];
-            nameColKey = headers.find(h => /name|elector\s*name/i.test(h)) || headers[1] || headers[0];
-
-            renderTableHeader();
-            statusBanner.className = "mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between";
-            statusText.textContent = `✓ Successfully loaded ${rawData.length.toLocaleString()} records. Ready for search.`;
-          } else {
-            showError("No data found in the provided spreadsheet.");
-          }
-        },
-        error: function(err) {
-          showError("Failed to fetch or parse CSV. Check spreadsheet sharing permissions.");
-          console.error(err);
-        }
-      });
-    }
-
-    function showError(msg) {
-      statusBanner.className = "mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm";
-      statusText.textContent = `⚠️ Error: ${msg}`;
-    }
-
-    function renderTableHeader() {
-      let tr = document.createElement("tr");
-      headers.forEach(header => {
-        let th = document.createElement("th");
-        th.className = "px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-700 whitespace-nowrap bg-slate-100";
-        th.textContent = header;
-        tr.appendChild(th);
-      });
-      tableHead.innerHTML = "";
-      tableHead.appendChild(tr);
-    }
-
-    function executeSearch() {
-      const searchEpic = epicInput.value.trim().toUpperCase();
-      const searchName = nameInput.value.trim().toLowerCase();
-
-      if (!searchEpic && !searchName) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="${headers.length || 1}" class="px-6 py-12 text-center text-slate-400">
-              Please enter an EPIC number or Elector Name above to filter results.
-            </td>
-          </tr>
-        `;
-        resultCount.textContent = "";
-        return;
-      }
-
-      const filtered = rawData.filter(row => {
-        let epicVal = (row[epicColKey] || "").toString().trim().toUpperCase();
-        let nameVal = (row[nameColKey] || "").toString().trim().toLowerCase();
-
-        // Also check full row string if strict columns didn't catch it
-        let fullRowStr = Object.values(row).join(" ").toLowerCase();
-
-        let matchesEpic = !searchEpic || epicVal.includes(searchEpic) || fullRowStr.includes(searchEpic.toLowerCase());
-        let matchesName = !searchName || nameVal.includes(searchName) || fullRowStr.includes(searchName);
-
-        return matchesEpic && matchesName;
-      });
-
-      renderTableRows(filtered);
-    }
-
-    function renderTableRows(rows) {
-      tableBody.innerHTML = "";
-      resultCount.textContent = `Found ${rows.length} match${rows.length === 1 ? '' : 'es'}`;
-
-      if (rows.length === 0) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="${headers.length || 1}" class="px-6 py-12 text-center text-amber-600 bg-amber-50/50">
-              No matching anomalies found for the given search criteria.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      rows.forEach((row, index) => {
-        let tr = document.createElement("tr");
-        tr.className = index % 2 === 0 ? "bg-white hover:bg-slate-50 transition" : "bg-slate-50/70 hover:bg-slate-100/70 transition";
-        
-        headers.forEach(h => {
-          let td = document.createElement("td");
-          td.className = "px-4 py-2.5 text-sm text-slate-700 whitespace-nowrap border-b border-slate-100";
-          td.textContent = row[h] !== undefined && row[h] !== null ? row[h] : "-";
-          tr.appendChild(td);
-        });
-
-        tableBody.appendChild(tr);
-      });
-    }
-
-    // Event Listeners
-    searchForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      executeSearch();
-    });
-
-    resetBtn.addEventListener("click", () => {
-      epicInput.value = "";
-      nameInput.value = "";
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="${headers.length || 1}" class="px-6 py-12 text-center text-slate-400">
-            Please enter an EPIC number or Elector Name above to view records.
-          </td>
-        </tr>
-      `;
-      resultCount.textContent = "";
-    });
-
-    // Start fetching when DOM is ready
-    window.addEventListener("DOMContentLoaded", loadData);
-  </script>
-</body>
-</html>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2
