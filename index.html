@@ -26,7 +26,7 @@
 
   <main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full">
     
-    <!-- Status / Ready Banner (Total count is hidden) -->
+    <!-- Status / Ready Banner -->
     <div id="statusBanner" class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center justify-between">
       <span id="statusText">⏳ Connecting to database...</span>
     </div>
@@ -56,7 +56,7 @@
           <input 
             type="text" 
             id="nameInput" 
-            placeholder="e.g. Ramesh" 
+            placeholder="e.g. Ravikiran" 
             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none placeholder-slate-400"
           />
         </div>
@@ -86,7 +86,6 @@
       <h2 class="text-lg font-semibold text-slate-800">
         Search Results
       </h2>
-      <!-- Only populated after a user searches -->
       <span id="resultCount" class="text-sm font-semibold text-indigo-700"></span>
     </div>
 
@@ -130,11 +129,16 @@
             rawData = results.data;
             headers = results.meta.fields || Object.keys(rawData[0]);
             
-            // Auto-detect EPIC and Name headers
-            epicColKey = headers.find(h => /epic|voter\s*id|card/i.test(h)) || headers[0];
-            nameColKey = headers.find(h => /name|elector/i.test(h)) || headers[1] || headers[0];
+            // Priority 1: Match explicit Elector Name columns, excluding relative/relation columns
+            nameColKey = headers.find(h => /^(elector\s*name|elector_name|voter\s*name|elector)$/i.test(h.trim())) ||
+                         headers.find(h => /name/i.test(h) && !/relative|relation|father|husband|mother|guardian/i.test(h)) ||
+                         headers[0];
 
-            // Shows readiness without revealing total database row count
+            // Priority 2: Match explicit EPIC / Voter ID columns
+            epicColKey = headers.find(h => /^(epic|epic\s*no|epic_no|epic\s*number|voter\s*id|card\s*no)$/i.test(h.trim())) ||
+                         headers.find(h => /epic|voter\s*id|card/i.test(h)) ||
+                         headers[0];
+
             statusBanner.className = "mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between";
             statusText.textContent = "✓ Ready. Enter search criteria to view records.";
           } else {
@@ -170,10 +174,10 @@
       const filtered = rawData.filter(row => {
         let epicVal = (row[epicColKey] || "").toString().trim().toUpperCase();
         let nameVal = (row[nameColKey] || "").toString().trim().toLowerCase();
-        let fullRowStr = Object.values(row).join(" ").toLowerCase();
 
-        let matchesEpic = !searchEpic || epicVal.includes(searchEpic) || fullRowStr.includes(searchEpic.toLowerCase());
-        let matchesName = !searchName || nameVal.includes(searchName) || fullRowStr.includes(searchName);
+        // Strict column checks: Name matches ONLY the Elector Name column
+        let matchesEpic = !searchEpic || epicVal.includes(searchEpic);
+        let matchesName = !searchName || nameVal.includes(searchName);
 
         return matchesEpic && matchesName;
       });
