@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database Search Portal</title>
+  <!-- PapaParse for Google Sheets CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
+      user-select: auto;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-container {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      max-height: 550px;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+      cursor: default;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: #f1f5f9;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    th {
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .no-data {
+      padding: 40px;
+      text-align: center;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body oncontextmenu="return false;" onselectstart="return false;" ondragstart="return false;" oncopy="return false;" oncut="return false;">
+
+  <div class="container">
+    <div class="header">
+      <h1>Electoral Database Search Portal</h1>
+      <p>Enter exact details in any field below to search records.</p>
+    </div>
+
+    <!-- Search Form Card -->
+    <div class="card">
+      <div class="search-grid">
+        <div class="form-group">
+          <label for="searchEpic">EPIC Number (Exact match)</label>
+          <input type="text" id="searchEpic" placeholder="Enter exact EPIC Number..." onkeyup="checkEnter(event)" />
+        </div>
+        <div class="form-group">
+          <label for="searchElector">Elector Name (Exact full name)</label>
+          <input type="text" id="searchElector" placeholder="Enter exact full Elector Name..." onkeyup="checkEnter(event)" />
+        </div>
+        <div class="form-group">
+          <label for="searchMobile">Mobile Number (Exact 10 digits)</label>
+          <input type="text" id="searchMobile" placeholder="Enter exact Mobile Number..." onkeyup="checkEnter(event)" />
+        </div>
+      </div>
+
+      <div class="btn-container">
+        <button class="btn btn-primary" onclick="performSearch()">Search</button>
+        <button class="btn btn-secondary" onclick="resetSearch()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-container">
+      <table id="dataTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr>
+            <td class="no-data" colspan="100%">Loading database from Google Sheets...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const BASE_GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTvszZTFYORH06EEaEiOirIk9c7L2tf8KW_f_onGPXSbS5erFdYp7-_BtV_7JG5L5Ng-9gwyYCXyIOf/pub?output=csv";
+
+    let rawRows = [];
+    let allHeaders = [];
+    let isInitialLoad = true;
+
+    // Block keyboard copy/select shortcuts
+    document.addEventListener("keydown", (e) => {
+      const isInput = e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA";
+      if (isInput && (e.key === "a" || e.key === "c" || e.key === "v" || e.key === "x") && (e.ctrlKey || e.metaKey)) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && ["c", "a", "u", "s", "p", "x"].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    function maskMobileNumber(val) {
+      if (!val) return "";
+      const strVal = String(val).replace(/\s+/g, "").trim();
+      if (strVal.length > 4) {
+        return "*".repeat(strVal.length - 4) + strVal.slice(-4);
+      }
+      return strVal;
+    }
+
+    function normalizeText(val) {
+      return String(val || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    // Fetch Google Sheet data (with cache buster)
+    function fetchDatabase(isBackgroundUpdate = false) {
+      const cacheBustUrl = `${BASE_GOOGLE_SHEET_URL}&_t=${Date.now()}`;
+
+      Papa.parse(cacheBustUrl, {
+        download: true,
+        header: false,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (!results.data || results.data.length === 0) return;
+
+          allHeaders = results.data[0].map(h => String(h || "").replace(/[\r\n]+/g, " ").trim());
+          rawRows = results.data.slice(1);
+
+          renderTableHead(allHeaders);
+
+          if (isInitialLoad) {
+            document.getElementById("tableBody").innerHTML = `<tr><td class="no-data" colspan="${allHeaders.length || 1}">Please enter exact search details above and click Search.</td></tr>`;
+            isInitialLoad = false;
+          } else {
+            // Re-apply active search filter on updated data
+            const qEpic    = document.getElementById("searchEpic").value.trim();
+            const qElector = document.getElementById("searchElector").value.trim();
+            const qMobile  = document.getElementById("searchMobile").value.trim();
+
+            if (qEpic || qElector || qMobile) {
+              performSearch();
+            }
+          }
+        },
+        error: function(err) {
+          if (isInitialLoad) {
+            document.getElementById("tableBody").innerHTML = `<tr><td class="no-data" colspan="100%">Error connecting to Google Sheets. Please ensure the link is public.</td></tr>`;
+          }
+          console.error("Fetch error:", err);
+        }
+      });
+    }
+
+    // Initial load on page ready
+    window.addEventListener("DOMContentLoaded", () => {
+      fetchDatabase(false);
+
+      // Auto-refresh data and results every 60 seconds (60000 ms)
+      setInterval(() => {
+        fetchDatabase(true);
+      }, 60000);
+    });
+
+    function renderTableHead(cols) {
+      const thead = document.getElementById("tableHead");
+      thead.innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr>`;
+    }
+
+    function renderTableRows(rows) {
+      const tbody = document.getElementById("tableBody");
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td class="no-data" colspan="${allHeaders.length || 1}">No exact matching records found.</td></tr>`;
+        return;
+      }
+
+      const mobileColIndex = allHeaders.findIndex(h => h.toLowerCase().includes("mobile") || h.toLowerCase().includes("phone"));
+
+      tbody.innerHTML = rows.map(row => {
+        return `<tr>${allHeaders.map((_, colIndex) => {
+          let cellVal = row[colIndex] !== undefined ? String(row[colIndex]).trim() : "";
+          if (colIndex === mobileColIndex || (mobileColIndex === -1 && colIndex === 3)) {
+            cellVal = maskMobileNumber(cellVal);
+          }
+          return `<td>${cellVal}</td>`;
+        }).join("")}</tr>`;
+      }).join("");
+    }
+
+    function checkEnter(event) {
+      if (event.key === "Enter") {
+        performSearch();
+      }
+    }
+
+    function performSearch() {
+      const rawEpic    = document.getElementById("searchEpic").value;
+      const rawElector = document.getElementById("searchElector").value;
+      const rawMobile  = document.getElementById("searchMobile").value;
+
+      const qEpic    = normalizeText(rawEpic);
+      const qElector = normalizeText(rawElector);
+      const qMobile  = rawMobile.replace(/\D/g, "");
+
+      if (!qEpic && !qElector && !qMobile) {
+        document.getElementById("tableBody").innerHTML = `<tr><td class="no-data" colspan="${allHeaders.length || 1}">Please enter exact search details above and click Search.</td></tr>`;
+        return;
+      }
+
+      let mobileIdx = allHeaders.findIndex(h => h.toLowerCase().includes("mobile") || h.toLowerCase().includes("phone"));
+      if (mobileIdx === -1) mobileIdx = 3;
+
+      const filtered = rawRows.filter(row => {
+        // Elector Name in Column A (Index 0)
+        let matchElector = true;
+        if (qElector) {
+          const colAVal = normalizeText(row[0]);
+          matchElector = (colAVal === qElector);
+        }
+
+        // EPIC Number in Column E (Index 4)
+        let matchEpic = true;
+        if (qEpic) {
+          const colEVal = normalizeText(row[4]);
+          matchEpic = (colEVal === qEpic);
+        }
+
+        // Mobile Number in Mobile Column
+        let matchMobile = true;
+        if (qMobile) {
+          const mobileVal = String(row[mobileIdx] || "").replace(/\D/g, "");
+          matchMobile = (mobileVal.length > 0 && mobileVal === qMobile);
+        }
+
+        return matchElector && matchEpic && matchMobile;
+      });
+
+      renderTableRows(filtered);
+    }
+
+    function resetSearch() {
+      document.getElementById("searchEpic").value = "";
+      document.getElementById("searchElector").value = "";
+      document.getElementById("searchMobile").value = "";
+
+      document.getElementById("tableBody").innerHTML = `<tr><td class="no-data" colspan="${allHeaders.length || 1}">Please enter exact search details above and click Search.</td></tr>`;
+    }
+  </script>
+</body>
+</html>
